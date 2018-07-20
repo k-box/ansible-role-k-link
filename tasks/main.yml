@@ -1,0 +1,38 @@
+---
+  - name: ensure project directories are created
+    file:
+      dest: "{{ item.value.path }}"
+      state: directory
+    with_dict: "{{ k_links }}"
+
+  - name: ensure data directories are created
+    file:
+      dest: "{{ item.value.data }}"
+      state: directory
+    with_dict: "{{ k_links }}"
+
+  - name: ensure docker service file is existant
+    template:
+      src: "docker-compose.yml.j2"
+      dest: "{{ item.value.path }}/docker-compose.yml"
+    with_dict: "{{ k_links }}"
+#    notify:
+#      - restart klink
+
+  - name: ensure klink is registered as a system service
+    template:
+      src: "klink@url.service.j2"
+      dest: "/lib/systemd/system/klink@{{ item.key }}.service"
+      owner: root
+      group: root
+      mode: 0644
+    with_dict: "{{ k_links }}"
+    notify:
+      - reload systemctl
+
+  - name: ensure klink is running and enabled at boot
+    service:
+      name: "klink@{{ item.key }}.service"
+      enabled: yes
+      state: started
+    with_dict: "{{ k_links }}"

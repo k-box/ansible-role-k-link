@@ -1,0 +1,19 @@
+[Unit]
+Description=KLink Document management hub on {{ item.key }}
+Requires=docker.service
+After=docker.service
+Requires=reverseproxy.service
+After=reverseproxy.service
+
+[Service]
+WorkingDirectory={{ item.value.path }}
+Restart=on-failure
+
+# Compose up
+ExecStart=/usr/local/bin/docker-compose up
+
+# Compose down, remove containers and non-persistent volumes
+ExecStop=/usr/local/bin/docker-compose down -v
+
+[Install]
+WantedBy=multi-user.target

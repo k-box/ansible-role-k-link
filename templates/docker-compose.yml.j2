@@ -1,0 +1,125 @@
+## Deployment configuration for k-link on {{ item.key }}
+version: '2'
+
+networks:
+  web:
+    external:
+      name: reverseproxy_web
+  internal:
+
+services:
+  solr:
+    image: "{{ item.value.images.solr }}"
+    volumes:
+      - "{{ item.value.data }}/k-search/index:/opt/solr/k-search/k-search/data:rw"
+    networks:
+      - internal
+
+  ksearch:
+    image: "{{ item.value.images.k_search }}"
+    depends_on:
+      - solr
+    environment:
+      - SOLR_HOST=solr
+      - SOLR_NAME=k-search
+      - KLINK_REGISTRY_ENABLED={{ '1' if 'k_registry' in item.value.images else '0' }}
+      - KLINK_REGISTRY_API_URL=https://{{ item.key }}/registry
+      - APP_ENV=prod
+      - APP_DEBUG=0
+      - KLINK_RETAIN_DOWNLOADED_CONTENTS=1 # keep cached files
+    volumes:
+      - {{ item.value.data }}/k-search/documents/:/var/www/k-search/var/data-downloads/:rw
+    networks:
+      - internal
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host: {{ item.key }}; PathPrefix: /{path:(api|docs|bundles|swagger.json)}"
+      - "traefik.docker.network=reverseproxy_web"
+
+{% if 'k_registry' in item.value.images %}
+  registry:
+    image: "{{ item.value.images.k_registry }}"
+    environment:
+      - "KREGISTRY_BASE_PROTOCOL=https"
+      - "KREGISTRY_DOMAIN={{ item.key }}"
+      - "KREGISTRY_BASE_URL_PATH=/registry/"
+      - "KREGISTRY_ADMIN_USERNAME={{ lookup('keepass', '/ansible/k-links/' + item.key + '.username') }}"
+      - "KREGISTRY_ADMIN_PASSWORD={{ lookup('keepass', '/ansible/k-links/' + item.key + '.password') | password_hash('blowfish','1234567890123456789012') | regex_replace('\\$', '$$')}}"
+      - "APP_SECRET={{ lookup('keepass', '/ansible/k-links/' + item.key + '.password') | hash('md5') }}"
+      - "MAILER_PORT={{ item.value.smtp_port | default('25') }}"
+      - "MAILER_PASSWORD={{ item.value.smtp_password | default('changeme') }}"
+      - "MAILER_HOST={{ item.value.smtp_host | default(item.key) }}"
+      - "MAILER_SENDER_ADDRESS={{ item.value.smtp_from | default('kregistry@'+item.key) }}"
+    volumes:
+      - {{ item.value.data }}/registry/database/:/var/lib/mysql/:rw
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host: {{ item.key }}; PathPrefixStrip: /registry"
+      - "traefik.docker.network=reverseproxy_web"
+
+{% endif %}
+{% if 'video' in item.value.images %}
+  video:
+    image: "{{ item.value.images.video }}"
+    volumes:
+      - "{{ item.value.data }}/video/storage:/var/www/vss/storage"
+    networks:
+      - web
+    environment:
+      APP_URL: "https://{{ item.key }}/video/"
+      APP_KEY: "12jjwz58[j48u%ehhdE&_jeu56729013"
+      KLINK_REGISTRY_URL: "https://{{ item.key }}/registry/"
+      TRUSTED_PROXY_IP: "0.0.0.0/0" # we are always behind a proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host: {{ item.key }}; PathPrefix: /video"
+      - "traefik.docker.network=reverseproxy_web"
+
+{% endif %}
+{% if 'web' in item.value.images %}
+  web:
+    image: "{{ item.value.images.web }}"
+    environment:
+      SITEURL: "https://{{ item.key }}/"
+      KSEARCH_URL: "https://{{ item.key }}/api/"
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.frontend.rule=Host: {{ item.key }}"
+      - "traefik.docker.network=reverseproxy_web"
+
+{% endif %}
+{% if 'konverter' in item.value.images %}
+  konverter:
+    image: "{{ item.value.images.konverter }}"
+    environment:
+      - "DSN=host=database user=v2 password=v2 sslmode=disable"
+    volumes:
+      - ./konverter/mounted/institutions.json:/institutions.json:ro
+      - ./konverter/mounted/credentials.json:/credentials.json:ro
+      - {{ item.value.data }}/k-search/documents/:/var/documents/:rw # documents
+      - /tmp/konverter:/tmp/:rw # documents cache
+    networks:
+      - internal
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8000"
+      - "traefik.frontend.rule=Host: public.klink.asia; PathPrefixStrip: /kcore/"
+      - "traefik.docker.network=reverseproxy_web"
+
+  database:
+    image: postgres:9
+    environment:
+      - "POSTGRES_USER=v2"
+      - "POSTGRES_PASSWORD=v2"
+    volumes:
+      - ./konverter/db/:/var/lib/postgresql/data:rw
+    networks:
+      - internal
+
+{% endif %}
