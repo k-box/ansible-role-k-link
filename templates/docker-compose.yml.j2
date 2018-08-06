@@ -34,7 +34,7 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host: {{ item.key }}; PathPrefix: /{path:(api|docs|bundles|swagger.json)}"
+      - "traefik.frontend.rule=Host: {{ item.key }}; PathPrefix: /{path:(api|files|docs|bundles|swagger.json)}"
       - "traefik.docker.network=reverseproxy_web"
 
 {% if 'k_registry' in item.value.images %}
