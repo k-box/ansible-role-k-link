@@ -10,6 +10,9 @@ networks:
 services:
   solr:
     image: "{{ item.value.images.solr }}"
+    mem_limit: 2G
+    cpu_shares: 1024
+    restart: on-failure
     volumes:
       - "{{ item.value.data }}/k-search/index:/opt/solr/k-search/k-search/data:rw"
     networks:
@@ -17,6 +20,9 @@ services:
 
   ksearch:
     image: "{{ item.value.images.k_search }}"
+    mem_limit: 1G
+    cpu_shares: 1024
+    restart: on-failure
     depends_on:
       - solr
     environment:
@@ -39,6 +45,9 @@ services:
 
 {% if 'k_registry' in item.value.images %}
   mariadb:
+    mem_limit: 1G
+    cpu_shares: 1024
+    restart: on-failure
     image: "mariadb:10"
     environment:
       MYSQL_ROOT_PASSWORD: pw
@@ -52,6 +61,9 @@ services:
 
   registry:
     image: "{{ item.value.images.k_registry }}"
+    mem_limit: 512M
+    cpu_shares: 1024
+    restart: on-failure
     environment:
       REGISTRY_DB_HOST: "mariadb"
       REGISTRY_DB_USER: "kregistry"
@@ -85,6 +97,9 @@ services:
 {% endif %}
 {% if 'video' in item.value.images %}
   video:
+    mem_limit: 6G
+    cpu_shares: 1024
+    restart: on-failure
     image: "{{ item.value.images.video }}"
     volumes:
       - "{{ item.value.data }}/video/storage:/var/www/vss/storage"
@@ -104,6 +119,9 @@ services:
 {% if 'web' in item.value.images %}
   web:
     image: "{{ item.value.images.web }}"
+    mem_limit: 512M
+    cpu_shares: 1024
+    restart: on-failure
     environment:
       SITEURL: "https://{{ item.key }}/"
       KSEARCH_URL: "https://{{ item.key }}/api/"
@@ -117,6 +135,9 @@ services:
 {% endif %}
 {% if 'konverter' in item.value.images %}
   konverter:
+    mem_limit: 2G
+    cpu_shares: 1024
+    restart: on-failure
     image: "{{ item.value.images.konverter }}"
     environment:
       - "DSN=host=database user=v2 password=v2 sslmode=disable"
@@ -136,6 +157,9 @@ services:
 
   database:
     image: postgres:9
+    mem_limit: 1G
+    cpu_shares: 1024
+    restart: on-failure
     environment:
       - "POSTGRES_USER=v2"
       - "POSTGRES_PASSWORD=v2"
@@ -148,6 +172,9 @@ services:
 {% if 'redirect' in item.value %}
   slmtj-redirect:
     image: schmunk42/nginx-redirect
+    mem_limit: 512M
+    cpu_shares: 1024
+    restart: on-failure
     environment:
     - SERVER_REDIRECT={{ item.value.redirect.to | default(item.key) }}
     labels:
