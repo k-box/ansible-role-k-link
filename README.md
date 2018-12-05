@@ -47,9 +47,9 @@ k_links:
     path: "/home/user/deploy/k-link/klink-example-com"
     data: "/data/k-link/klink-example-com"
     images:
-      solr: "docker.klink.asia/images/k-search-engine:0.4.0"
-      k_search: "docker.klink.asia/images/k-search:3.2.0-1"
-      registry: "docker.klink.asia/main/k-link-registry:squash"
+      solr: "docker.klink.asia/images/k-search-engine:1.0.1"
+      k_search: "docker.klink.asia/images/k-search:3.6.0-2"
+      registry: "oneofftech/k-link-registry:latest"
 
 ```
 
