@@ -6,7 +6,7 @@ version: '2'
 networks:
   web:
     external:
-      name: reverseproxy_web
+      name: reverseproxy_traefik_web
   internal:
 
 services:
@@ -42,8 +42,10 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host: {{ ap_domain }}; PathPrefix: /{path:(api|files|docs|bundles|swagger.json)}"
-      - "traefik.docker.network=reverseproxy_web"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_ksearch.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/api`, `/files`, `/docs`, `/bundles`, `/swagger`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_ksearch.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_ksearch.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_ksearch.tls.certresolver=mytls"
 
 {% if 'k_registry' in item.value.images %}
   mariadb:
@@ -92,8 +94,10 @@ services:
       - internal
     labels:
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host: {{ ap_domain }}; PathPrefix: /registry"
-      - "traefik.docker.network=reverseproxy_web"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_registry.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/registry`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_registry.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_registry.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_registry.tls.certresolver=mytls"
 
 {% endif %}
 {% if 'video' in item.value.images %}
@@ -113,8 +117,10 @@ services:
       TRUSTED_PROXY_IP: "0.0.0.0/0" # we are always behind a proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host: {{ ap_domain }}; PathPrefix: /video"
-      - "traefik.docker.network=reverseproxy_web"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_video.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/video`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_video.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_video.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_video.tls.certresolver=mytls"
 
 {% endif %}
 {% if 'web' in item.value.images %}
@@ -130,8 +136,10 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.frontend.rule=Host: {{ web_domain }}"
-      - "traefik.docker.network=reverseproxy_web"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_web.rule=Host(`{{ web_domain }}`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_web.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_web.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_web.tls.certresolver=mytls"
 
 {% endif %}
 {% if 'konverter' in item.value.images %}
@@ -152,9 +160,11 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.port=8000"
-      - "traefik.frontend.rule=Host: public.klink.asia; PathPrefixStrip: /kcore/"
-      - "traefik.docker.network=reverseproxy_web"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/kcore/`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.tls.certresolver=mytls"
+      # - "traefik.port=8000"
 
   database:
     image: postgres:9
@@ -179,10 +189,11 @@ services:
     environment:
     - SERVER_REDIRECT={{ item.value.redirect.to | default(web_domain) }}
     labels:
-    - "traefik.port=80"
-    - "traefik.enable=true"
-    - "traefik.frontend.rule=Host:{{ item.value.redirect.from | default("www."+web_domain) }}"
-    - "traefik.docker.network=reverseproxy_web"
+      - "traefik.enable=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_redirect.rule=Host(`{{ item.value.redirect.from | default("www."+web_domain) }}`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_redirect.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_redirect.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_redirect.tls.certresolver=mytls"
     networks:
     - web
 
