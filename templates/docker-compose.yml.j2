@@ -42,10 +42,10 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.klink_ksearch.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/api`, `/files`, `/docs`, `/bundles`, `/swagger`)"
-      - "traefik.http.routers.klink_ksearch.entrypoints=websecure"
-      - "traefik.http.routers.klink_ksearch.tls=true"
-      - "traefik.http.routers.klink_ksearch.tls.certresolver=mytls"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_ksearch.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/api`, `/files`, `/docs`, `/bundles`, `/swagger`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_ksearch.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_ksearch.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_ksearch.tls.certresolver=mytls"
 
 {% if 'k_registry' in item.value.images %}
   mariadb:
@@ -94,10 +94,10 @@ services:
       - internal
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.klink_registry.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/registry`)"
-      - "traefik.http.routers.klink_registry.entrypoints=websecure"
-      - "traefik.http.routers.klink_registry.tls=true"
-      - "traefik.http.routers.klink_registry.tls.certresolver=mytls"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_registry.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/registry`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_registry.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_registry.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_registry.tls.certresolver=mytls"
 
 {% endif %}
 {% if 'video' in item.value.images %}
@@ -117,10 +117,10 @@ services:
       TRUSTED_PROXY_IP: "0.0.0.0/0" # we are always behind a proxy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.klink_video.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/video`)"
-      - "traefik.http.routers.klink_video.entrypoints=websecure"
-      - "traefik.http.routers.klink_video.tls=true"
-      - "traefik.http.routers.klink_video.tls.certresolver=mytls"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_video.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/video`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_video.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_video.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_video.tls.certresolver=mytls"
 
 {% endif %}
 {% if 'web' in item.value.images %}
@@ -136,10 +136,10 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.klink_web.rule=Host(`{{ web_domain }}`)"
-      - "traefik.http.routers.klink_web.entrypoints=websecure"
-      - "traefik.http.routers.klink_web.tls=true"
-      - "traefik.http.routers.klink_web.tls.certresolver=mytls"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_web.rule=Host(`{{ web_domain }}`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_web.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_web.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_web.tls.certresolver=mytls"
 
 {% endif %}
 {% if 'konverter' in item.value.images %}
@@ -160,10 +160,10 @@ services:
       - web
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.klink_konverter.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/kcore/`)"
-      - "traefik.http.routers.klink_konverter.entrypoints=websecure"
-      - "traefik.http.routers.klink_konverter.tls=true"
-      - "traefik.http.routers.klink_konverter.tls.certresolver=mytls"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_konverter.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/kcore/`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_konverter.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_konverter.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_konverter.tls.certresolver=mytls"
       # - "traefik.port=8000"
 
   database:
@@ -190,10 +190,10 @@ services:
     - SERVER_REDIRECT={{ item.value.redirect.to | default(web_domain) }}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.klink_redirect.rule=Host(`{{ item.value.redirect.from | default("www."+web_domain) }}`)"
-      - "traefik.http.routers.klink_redirect.entrypoints=websecure"
-      - "traefik.http.routers.klink_redirect.tls=true"
-      - "traefik.http.routers.klink_redirect.tls.certresolver=mytls"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_redirect.rule=Host(`{{ item.value.redirect.from | default("www."+web_domain) }}`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_redirect.entrypoints=websecure"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_redirect.tls=true"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "_") }}_redirect.tls.certresolver=mytls"
     networks:
     - web
 
