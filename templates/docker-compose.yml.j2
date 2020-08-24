@@ -158,13 +158,17 @@ services:
     networks:
       - internal
       - web
+    ports:
+      - "8000"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/kcore/`)"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.rule=Host(`{{ ap_domain }}`) && PathPrefix(`/kcore`)"
+      - "traefik.http.services.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter_service.loadbalancer.server.port=8000"
       - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.entrypoints=websecure"
       - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.tls=true"
       - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.tls.certresolver=mytls"
-      # - "traefik.port=8000"
+      - "traefik.http.routers.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter.middlewares=klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter_path_stripper"
+      - "traefik.http.middlewares.klink_{{ ap_domain | replace(".", "-") | replace("_", "-") }}_konverter_path_stripper.stripprefix.prefixes=/kcore"
 
   database:
     image: postgres:9
